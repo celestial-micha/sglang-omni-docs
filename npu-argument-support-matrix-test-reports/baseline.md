@@ -29,8 +29,8 @@
 | mem_fraction_static                     | None          | float                                             |     |           | [√] 已支持；Fun-CosyVoice3 关闭图执行时，默认及显式比例的 KV 分配与音频生成通过，非进程总内存硬上限（[报告](mem_fraction_static.md)） |
 | thinker_mem_fraction_static        | None          | float                                             |     |           | [√] 已支持；Qwen3-Omni 关闭图执行、TP=2 时，两个 Thinker 进程的 KV 分配及文字/音频生成通过（实际入口 `--thinker.engine.mem_fraction_static`）（[报告](thinker_mem_fraction_static.md)） |
 | talker_mem_fraction_static          | None          | float                                             |     |           | [√] 已支持；Qwen3-Omni 关闭图执行时，Talker KV 分配与音频生成通过，共卡可用内存仍影响容量（实际入口 `--talker_ar.engine.mem_fraction_static`）（[报告](talker_mem_fraction_static.md)） |
-| encoder_mem_reserve                | None          | float                                             |     |           | [√] 已支持；NPU 参数逻辑验证通过，未做 Qwen3-Omni thinker 端到端（[报告](encoder_mem_reserve.md)） |
-| cpu_offload_gb                           | None          | int                                               |     |           | [√] 已支持；卸载器与带参启动验证通过，生成闭环受编译器环境问题阻断（[报告](cpu_offload_gb.md)） |
+| encoder_mem_reserve                | None          | float                                             |     |           |  |
+| cpu_offload_gb                           | None          | int                                               |     |           |  |
 | quantization                                | None          | str                                               |     | [x]       | — |
 | log_level                                      | "info"   | ["debug", "info", "warning", "error", "critical"] |     | [√]        | — |
 | thinker_tp_size                            | None          | int                                               |     | [√]        | — |
