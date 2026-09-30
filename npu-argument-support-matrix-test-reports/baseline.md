@@ -56,7 +56,7 @@
 | prefill_coalesce_wait_ms               | None          | float                                             |     |           | [√] 已支持；TP=1 配对凑批参数验证到期放行，TP>1 时不参与判断（[报告](prefill_coalesce_wait_ms.md)） |
 | max_running_requests                  | None          | int                                               |     |           | [√] 已支持；thinker / talker_ar 限流、超限排队与阶段隔离通过（[报告](max_running_requests.md)） |
 | max_queued_requests                  | None          | int                                               |     |           | [√] 已支持；超限拒绝与恢复通过，chat 接口返回 500，单独设置时限流层级与语义不同（[报告](max_queued_requests.md)） |
-| max_total_tokens                         | None          | int                                               |     |           | [√] 已支持；KV 池容量与准入生效，存在错误提示不准及池容量与上下文长度的配置校验缺口（[报告](max_total_tokens.md)） |
+| max_total_tokens                         | None          | int                                               |     |           | [√] 已支持；KV 池容量与准入生效，存在错误提示不准（[报告](max_total_tokens.md)） |
 | cuda_graph_max_bs                    | None          | int                                               |     | [√]        | — |
 
 ## Issue 中已有的验证反馈
