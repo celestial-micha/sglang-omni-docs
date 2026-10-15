@@ -2,15 +2,15 @@
 
 - 记录日期：2026-09-10
 - 来源：[Issue #1597](https://github.com/sgl-project/sglang-omni/issues/1597)
-- 汇总更新日期：2026-09-30
+- 汇总更新日期：2026-10-15
 - 本文性质：上游矩阵快照与同目录已完成的参数实测报告汇总；本次更新未重新执行 NPU 测试。
-- 已收录报告：21 项，其中 14 项已支持（含报告注明的验证范围与限制）、6 项需要开发支持、1 项已删除而无需支持。
+- 本次补充：`cpu_offload_gb`、`encoder_mem_reserve`、`enable_realtime`、`image_encoder_tp_size` 四项在指定源码和配置下的验证结论；其余参数沿用原记录，未重新核验。
 
 ## 上游矩阵与参数支持验证
 
 以下保留 Issue 原始列、默认值及标记。原 `supported` 列中的 `[√]`、`[x]` 和空白均为来源标记，不额外推断 UT 或端到端测试结果。参数默认值可能随代码版本改变，应以测试 commit 为准。
 
-“参数支持验证”列依据同目录实测报告填写，每项结论链接到对应报告。`[√] 已支持` 仅表示报告所述版本、模型、配置与验证范围内的支持，不等于所有场景端到端通过；“需要开发支持”表示所测版本尚不可用；`[x] 无需支持` 表示字段已删除；`—` 表示本目录暂无该参数的独立报告。矩阵沿用原任务名，实际配置字段以报告为准。
+“参数支持验证”列依据同目录实测报告填写；既有条目保留报告链接，本次四项直接列出结论、关联PR及未解决Issue，按2026-10-15交付记录填写。“待集成PR”表示对应改动已提交、尚未合并，不表示适配尚未开发，也不表示正式发行版已包含修复。`[√] 已支持` 仅表示报告所述版本、模型、配置与验证范围内的支持，不等于所有场景端到端通过；“需要开发支持”表示所测版本尚不可用；`[x] 无需支持` 表示字段已删除；`—` 表示本目录暂无该参数的独立报告。矩阵沿用原任务名，实际配置字段以报告为准。
 
 | Args                           | Default value | Options                                           | UTs | supported | 参数支持验证                                                                                                                                            |
 | ------------------------------ | ------------- | ------------------------------------------------- | --- | --------- |---------------------------------------------------------------------------------------------------------------------------------------------------|
@@ -29,13 +29,13 @@
 | mem_fraction_static                     | None          | float                                             |     |           | [√] 已支持；Fun-CosyVoice3 关闭图执行时，默认及显式比例的 KV 分配与音频生成通过，非进程总内存硬上限（[报告](mem_fraction_static.md)）                                                       |
 | thinker_mem_fraction_static        | None          | float                                             |     |           | [√] 已支持；Qwen3-Omni 关闭图执行、TP=2 时，两个 Thinker 进程的 KV 分配及文字/音频生成通过（实际入口 `--thinker.engine.mem_fraction_static`）（[报告](thinker_mem_fraction_static.md)） |
 | talker_mem_fraction_static          | None          | float                                             |     |           | [√] 已支持；Qwen3-Omni 关闭图执行时，Talker KV 分配与音频生成通过，共卡可用内存仍影响容量（实际入口 `--talker_ar.engine.mem_fraction_static`）（[报告](talker_mem_fraction_static.md)）     |
-| encoder_mem_reserve                | None          | float                                             |     |           |                                                                                                                                                   |
-| cpu_offload_gb                           | None          | int                                               |     |           |                                                                                                                                                   |
+| encoder_mem_reserve                | None          | float                                             |     |           | **NPU需要；现有预算逻辑已支持，验证通过，无需参数代码开发。** 预算与实际缓存按预期变化，28条候选图片请求通过；所测图捕获及重叠调度关闭。关联待集成PR：[Omni #2736](https://github.com/sgl-project/sglang-omni/pull/2736)，独立图片入口修复，预算公式未改；图片成绩对应修复后的入口。无需新增Issue；未测完整视觉精度或最大吞吐。 |
+| cpu_offload_gb                           | None          | int                                               |     |           | **NPU需要，且需要开发；一行NPU锁页适配已完成，基础功能通过。** 80条请求完成，卸载前后转写一致；保留所测prefill/decode图、关闭编译，卸载有延迟代价。待集成PR：[SGLang #43824](https://github.com/sgl-project/sglang/pull/43824)，共享卸载器内存分配适配，未改算子数学实现。未解决Issue：[#43958](https://github.com/sgl-project/sglang/issues/43958)，独立的编译与图执行兼容问题。 |
 | quantization                                | None          | str                                               |     | [x]       | —                                                                                                                                                 |
 | log_level                                      | "info"   | ["debug", "info", "warning", "error", "critical"] |     | [√]        | —                                                                                                                                                 |
 | thinker_tp_size                            | None          | int                                               |     | [√]        | —                                                                                                                                                 |
 | thinker_gpus                               | None          | str                                               |     | [√]        | —                                                                                                                                                 |
-| image_encoder_tp_size               | None          | int                                               |     |           | —                                                                                                                                                 |
+| image_encoder_tp_size               | None          | int                                               |     |           | **NPU需要，且Ming的TP接入需要开发；配置传递已补齐，所测分片与问答路径通过。** 选定版本TP2完成900题、答对538题，历史正确集合退化8题，按项目确认范围接受；新算法双卡局部编码耗时约单卡2.72倍，整服务性能未测。待集成PR：[Omni #2427](https://github.com/sgl-project/sglang-omni/pull/2427)，包含TP接入、独立模型修复及选定数值算法，不能全部认定为基本TP支持的必要开发。未解决Issue：[#2737](https://github.com/sgl-project/sglang-omni/issues/2737)，TP及执行条件下的答案差异，尚不能定性为矩阵算子错误。 |
 | image_encoder_gpus                  | None          | str                                               |     |           | [√] 已支持；Ming 单卡选卡与图片问答闭环通过（实际入口 `--image_encoder.gpu`）（[报告](image_encoder_gpus.md)）                                                               |
 | talker_gpu                                   | None          | int                                               |     | [√]        | —                                                                                                                                                 |
 | code2wav_gpu                            | None          | int                                               |     | [√]        | —                                                                                                                                                 |
@@ -48,7 +48,7 @@
 | talker_torch_compile_max_bs     | None          | int                                               |     |     [x]        | 不 需要开发支持；dynamo崩溃（torch_npu不支持NPU），采用拦截告警处理（[报告](talker_torch_compile_max_bs.md) （[PR](https://github.com/sgl-project/sglang-omni/pull/2104)）                    |
 | torch_compile                             | "default"     | default\|on\|off                                  |     |     [x]        |不 需要开发支持；dynamo崩溃（torch_npu不支持NPU），采用拦截告警处理（[报告](torch_compile.md) （[PR](https://github.com/sgl-project/sglang-omni/pull/2104)）                                 |
 | torch_compile_max_bs                | None          | int                                               |     |      [x]       |不 需要开发支持；dynamo崩溃（torch_npu不支持NPU），采用拦截告警处理（[报告](torch_compile_max_bs.md) （[PR](https://github.com/sgl-project/sglang-omni/pull/2104)）                                                                                        |
-| enable_realtime                           | FALSE         | bool                                              |     |           | —                                                                                                                                                 |
+| enable_realtime                           | FALSE         | bool                                              |     |           | **NPU需要，且所测NPU运行路径需要适配；适配已完成，在匹配语音实现中验证通过。** 1088条会话完成，声音相对返回文字WER为1.92%，按项目确认范围接受；所测图捕获及重叠调度关闭，仍有播放停顿。待集成PR：[Omni #2426](https://github.com/sgl-project/sglang-omni/pull/2426)，NPU传输适配及Qwen语音实现修复；[SGLang #43825](https://github.com/sgl-project/sglang/pull/43825)，已测采样依赖，不能全部算作参数开发。未解决Issue：[#2738](https://github.com/sgl-project/sglang-omni/issues/2738)，声音与返回文字不一致。 |
 | decode_mode                              | None          | str                                               |     |           | [x] 无需支持；字段已删除，现行配置明确拒绝旧字段（[报告](decode_mode.md)）                                                                                                  |
 | async_lookahead_min_batch_size | None          | int                                               |     |           | [√] 已支持对应门槛功能；实测字段为 `async_decode_min_batch_size`，不代表原任务名可用于配置，未证实稳定加速（[报告](async_lookahead_min_batch_size.md)）                                   |
 | thinker_max_running_requests     | None          | int                                               |     |           | [√] 已支持；thinker 超限排队与阶段隔离通过（[报告](thinker_max_running_requests.md)）                                                                                |
