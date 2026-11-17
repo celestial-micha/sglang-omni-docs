@@ -4,13 +4,13 @@
 
 `image_encoder_tp_size`控制图片编码器由几张NPU共同计算：1表示一张，2表示两张按规则分担同一次图片编码，即张量并行（TP）。它不表示整个Ming模型只用这些卡，回答阶段还使用另外的计算资源。任务清单沿用此参数名；所测版本的配置键及命令行参数分别为`image_encoder.tp_size`、`--image_encoder.tp_size`。
 
-**参数结论（2026-11-17）：NPU支持。在参数调用链路中发现了Ming-Omni缓存命中后媒体特征取错行、图片/音频误用文字专家路由的问题，以及撤回后媒体输入和读取进度未恢复的风险，已提交[Issue #4142](https://github.com/sgl-project/sglang-omni/issues/4142)跟踪，原[PR #3376](https://github.com/sgl-project/sglang-omni/pull/3376)已关闭。本参数的验证与问题反馈工作已完成；撤回风险目前仅在定向测试中复现，端到端稳定复现仍待验证。**
+**参数结论（2026-11-17）：NPU支持; 调用链路中的Ming模型问题已提交[issue #4142](https://github.com/sgl-project/sglang-omni/issues/4142)反馈。**
 
 **历史接入问题：**早期Ming漏向`ServerArgs`传入实际`tp_size`，后续核查的官方main `5f03f7e9`[已具备该配置传递](https://github.com/sgl-project/sglang-omni/blob/5f03f7e9/sglang_omni/models/ming_omni/components/image_encoder.py#L146)。下文TP2问答及TP2/4/8编码数据保留其历史候选版本归属，不代表当前main的完整TP2服务已验收。
 
 | 参数及报告 | 参数结论与本次工作 | 保留的PR及归属 | Issue |
 | --- | --- | --- | --- |
-| [image_encoder_tp_size](image_encoder_tp_size.md) | **NPU支持；调用链路中的Ming模型问题已反馈。** 历史538/900、8题退步及性能限制保留 | [#3376](https://github.com/sgl-project/sglang-omni/pull/3376)已关闭；早期[#2427](https://github.com/sgl-project/sglang-omni/pull/2427)保留历史方案 | [#4142](https://github.com/sgl-project/sglang-omni/issues/4142)：模型问题；[#2737](https://github.com/sgl-project/sglang-omni/issues/2737)：早期答案差异 |
+| [image_encoder_tp_size](image_encoder_tp_size.md) | **NPU支持; 调用链路中的Ming模型问题已提交[issue #4142](https://github.com/sgl-project/sglang-omni/issues/4142)反馈。** 历史538/900、8题退步及性能限制保留 | [#3376](https://github.com/sgl-project/sglang-omni/pull/3376)已关闭；早期[#2427](https://github.com/sgl-project/sglang-omni/pull/2427)保留历史方案 | [#4142](https://github.com/sgl-project/sglang-omni/issues/4142)：模型问题；[#2737](https://github.com/sgl-project/sglang-omni/issues/2737)：早期答案差异 |
 
 | 实测版本中的改动 | 问题归属与作用范围 |
 | --- | --- |
