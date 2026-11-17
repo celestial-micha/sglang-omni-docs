@@ -2,7 +2,7 @@
 
 - 记录日期：2026-09-10
 - 来源：[Issue #1597](https://github.com/sgl-project/sglang-omni/issues/1597)
-- 汇总更新日期：2026-09-30；2026-11-17更新`image_encoder_tp_size`、`cpu_offload_gb`、`encoder_mem_reserve`结论
+- 汇总更新日期：2026-09-30；2026-11-17更新`image_encoder_tp_size`、`cpu_offload_gb`、`encoder_mem_reserve`、`enable_realtime`结论
 - 本文性质：上游矩阵快照与同目录已完成的参数实测报告汇总；本次更新未重新执行 NPU 测试。
 - 2026-09-30历史汇总：21 项，其中 14 项已支持（含报告注明的验证范围与限制）、6 项需要开发支持、1 项已删除而无需支持。
 
@@ -48,7 +48,7 @@
 | talker_torch_compile_max_bs     | None          | int                                               |     |     [x]        | 不 需要开发支持；dynamo崩溃（torch_npu不支持NPU），采用拦截告警处理（[报告](talker_torch_compile_max_bs.md) （[PR](https://github.com/sgl-project/sglang-omni/pull/2104)）                    |
 | torch_compile                             | "default"     | default\|on\|off                                  |     |     [x]        |不 需要开发支持；dynamo崩溃（torch_npu不支持NPU），采用拦截告警处理（[报告](torch_compile.md) （[PR](https://github.com/sgl-project/sglang-omni/pull/2104)）                                 |
 | torch_compile_max_bs                | None          | int                                               |     |      [x]       |不 需要开发支持；dynamo崩溃（torch_npu不支持NPU），采用拦截告警处理（[报告](torch_compile_max_bs.md) （[PR](https://github.com/sgl-project/sglang-omni/pull/2104)）                                                                                        |
-| enable_realtime                           | FALSE         | bool                                              |     |           | —                                                                                                                                                 |
+| enable_realtime                           | FALSE         | bool                                              |     |           | [√] NPU支持；实时语音后续问题由[Omni #4147](https://github.com/sgl-project/sglang-omni/issues/4147)、采样整数问题由[SGLang #51011](https://github.com/sgl-project/sglang/issues/51011)跟踪（[报告](enable_realtime.md)） |
 | decode_mode                              | None          | str                                               |     |           | [x] 无需支持；字段已删除，现行配置明确拒绝旧字段（[报告](decode_mode.md)）                                                                                                  |
 | async_lookahead_min_batch_size | None          | int                                               |     |           | [√] 已支持对应门槛功能；实测字段为 `async_decode_min_batch_size`，不代表原任务名可用于配置，未证实稳定加速（[报告](async_lookahead_min_batch_size.md)）                                   |
 | thinker_max_running_requests     | None          | int                                               |     |           | [√] 已支持；thinker 超限排队与阶段隔离通过（[报告](thinker_max_running_requests.md)）                                                                                |
