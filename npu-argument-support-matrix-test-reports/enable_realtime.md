@@ -10,11 +10,17 @@
 
 **实测环境的内容验收：**生成声音经ASR识别后，相对服务返回文字的词错率（WER）为254/13236，即1.92%，按本项目确认的质量范围接受。ASR是将声音识别成文字的工具；WER统计替换、删除和插入的词数。其他评分、逐条差异和失败病例均保留；接受该质量范围不等于每句话均正确，也不等于每个词差都是框架错误。GPU报告只能作为背景参考，不能因数值处于其区间便声称严格的GPU/NPU等价，具体口径见第二节。
 
-| 参数及报告 | 参数结论与本次工作 | 保留的PR及归属 | Issue |
+| 参数及报告 | 参数结论与验证边界 | 原实测补丁（历史源码） | 后续 Issue 跟踪 |
 | --- | --- | --- | --- |
-| [enable_realtime](enable_realtime.md) | **NPU需要，且所测NPU运行路径需要适配；适配已完成，在匹配语音实现中验证通过。** 1088条完成，1.92%按项目确认标准接受 | [Omni #2426](https://github.com/sgl-project/sglang-omni/pull/2426)：NPU传输及Qwen语音实现修复；[SGLang #43825](https://github.com/sgl-project/sglang/pull/43825)：已测采样依赖。不能全部算作参数本身开发 | [#2738](https://github.com/sgl-project/sglang-omni/issues/2738)：声音与返回文字不一致 |
+| [enable_realtime](enable_realtime.md) | **NPU需要；历史所测NPU路径需要适配，适配后在匹配语音实现中验证通过。** 1088条完成，1.92%按项目确认标准接受；不代表当前main重新验收通过 | [Omni #2426](https://github.com/sgl-project/sglang-omni/pull/2426)：原NPU传输及Qwen语音实现；[SGLang #43825](https://github.com/sgl-project/sglang/pull/43825)：原实测采样依赖。保留源码与证据引用，不再作为本参数的待开发清单 | [SGLang #51011](https://github.com/sgl-project/sglang/issues/51011)：采样整数；[SGLang #50715](https://github.com/sgl-project/sglang/issues/50715)：显式RMSNorm选项；[Omni #2738](https://github.com/sgl-project/sglang-omni/issues/2738)：历史声音/文字差异；[Omni #483](https://github.com/sgl-project/sglang-omni/issues/483#issuecomment-6947877264)：当前原生SESSION的提示隐藏状态缺口，非本报告原实测模式的新增验收项 |
 
-两份PR位于不同仓库，共同对应本报告的实测版本。重新区分问题归属不会自动移除已测依赖，也不把组合成绩归因于每一项修复。
+**后续跟踪更新（2026-11-17）：**Omni #2426中的NPU传输识别、KV页回滚和REQUEST模式提示隐藏状态传递，分别已由上游合并的[#2769](https://github.com/sgl-project/sglang-omni/pull/2769)、[#2579](https://github.com/sgl-project/sglang-omni/pull/2579)、[#2861](https://github.com/sgl-project/sglang-omni/pull/2861)覆盖；当前REQUEST方案支持缓存复用，不再需要旧UUID隔离方案。这些已覆盖部分不新增Issue。未解决事项按上表继续跟踪，不继续扩展旧组合PR。
+
+SGLang #43825的整数问题尚未被所查main覆盖，现由#51011承接；不能用语音差异Issue #2738替代整数问题跟踪。#50715已承接此前Omni #3377 / SGLang #50274中的共享后端问题，但没有证据要求为本参数重新启用Qwen专用RMSNorm补丁，也未证明它解决#2738。
+
+本次状态核查固定于Omni main `eeaf0390f5bcd4cd335217622db253df03c7fc7a`、SGLang main `703e763d5f3af75ea3587275d79155c28d3c5d4f`，仅核查源码及远端记录，未重新运行模型实验。转为Issue跟踪不表示问题已修复；截至本次核查，#2426与#43825仍开放、未合并。
+
+两份历史PR位于不同仓库，共同对应本报告的实测版本。下表及后文保留原实测源码、配置、性能代价与未测范围；当前上游状态不改变原验证身份，也不把组合成绩归因于每一项修复。
 
 | 实测版本中的改动 | 问题归属与作用范围 | 提交 |
 | --- | --- | --- |
@@ -29,9 +35,9 @@
 
 **模型及版本依据：**[官方模型说明](https://huggingface.co/Qwen/Qwen3-Omni-30B-A3B-Instruct)区分包含Thinker/Talker的Instruct与仅输出文字的Thinking，本报告只验证前者。[基础版本使用说明](https://github.com/sgl-project/sglang-omni/blob/025527dbb32d69de247ed64851fd906840251b03/docs/basic_usage/qwen3_omni.md#realtime-speech-with-server-side-turn-detection)已有`--enable-realtime`。
 
-PR #2426从基线`025527dbb32d69de247ed64851fd906840251b03`更新到`d71b88d3d84adedcd662ed0a941558d29a0a48ab`。13个提交文件已与冻结v4核对，除格式、说明注释和无动作else分支外，执行逻辑等价。SGLang采样依赖基于`94602c9c2b7cbdb8efd5c52802dac6a1c180089e`，已测产品逻辑对应提交`9d08f82a76474a5693c3030df8c319d2d09c1e95`。2026-10-15仅补齐证据JSON末尾换行，当前PR提交为`ebcec6e4a5416066688e6a5eb71af7476cf21ed7`，产品代码与JSON数值均未变，上游Lint已通过；NPU CI被草稿门禁跳过，主测试流程被基线更新门禁拦截，完整上游CI未完成。
+PR #2426从基线`025527dbb32d69de247ed64851fd906840251b03`更新到`d71b88d3d84adedcd662ed0a941558d29a0a48ab`。13个提交文件已与冻结v4核对，除格式、说明注释和无动作else分支外，执行逻辑等价。SGLang采样依赖基于`94602c9c2b7cbdb8efd5c52802dac6a1c180089e`，已测产品逻辑对应提交`9d08f82a76474a5693c3030df8c319d2d09c1e95`。2026-10-15仅补齐证据JSON末尾换行，当时PR提交为`ebcec6e4a5416066688e6a5eb71af7476cf21ed7`，产品代码与JSON数值均未变，上游Lint已通过；NPU CI被草稿门禁跳过，主测试流程被基线更新门禁拦截，完整上游CI未完成。
 
-1088条、1.92%、20条性能及历史164项UT对应冻结`prompt_hidden_product_v4_20261008_source`和匹配依赖。上述源码核对建立了它们与提交版本的关系，没有重跑完整模型评测；164项UT原始pytest日志的证据缺口见第三节。两份PR均未合并，当前发行包不能据此视为已包含修复。
+1088条、1.92%、20条性能及历史164项UT对应冻结`prompt_hidden_product_v4_20261008_source`和匹配依赖。上述源码核对建立了它们与提交版本的关系，没有重跑完整模型评测；164项UT原始pytest日志的证据缺口见第三节。以上为历史提交记录；当前上游覆盖情况及后续Issue见本节更新，不据此宣称当前发行包或新组合已完成相同验收。
 
 **独立跟踪的问题：**病例0919返回文字以“Like other lavenders”开始，Qwen-ASR及Whisper均把生成音频识别为“Unlike other lavenders”；原种子`1094055237`可逐字节复现该音频。其最终原因尚未确定，不能定性为实时参数、模型权重或底层矩阵算子错误。190条声音与文字存在词差的记录均保留第二识别器复核，其中也包含形式差异、专名及识别器分歧。
 
